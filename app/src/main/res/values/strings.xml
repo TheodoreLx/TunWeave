@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TunWeave</string>
+    <string name="tile_label">代理VPN</string>
+    <string name="vpn_connected">已连接</string>
+    <string name="vpn_connecting">连接中…</string>
+    <string name="notification_channel_name">VPN 服务</string>
+    <string name="notification_channel_desc">显示 VPN 连接状态</string>
+    <string name="action_disconnect">断开连接</string>
+</resources>

@@ -1,0 +1,30 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+**/build/
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+*.spk
+
+# Signing credentials and local secrets
+/.signing/
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.key
+keystore.properties
+.env
+.env.*
+!.env.example
+
+# OS-generated files
+.DS_Store
+Thumbs.db
