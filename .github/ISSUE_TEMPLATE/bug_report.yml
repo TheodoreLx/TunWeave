@@ -1,0 +1,127 @@
+name: Bug report
+description: Report a reproducible problem in TunWeave
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve TunWeave. Search existing issues before filing a duplicate.
+
+        Do not include proxy passwords, signing material, private keys, authorization values, or data belonging to other people. Review logs before attaching them and replace private endpoints, addresses, and package names with consistent placeholders.
+
+        Suspected security vulnerabilities must follow the [security policy](https://github.com/TheodoreLx/TunWeave/security/policy) instead of being reported publicly.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - VPN connection or lifecycle
+        - SOCKS5 TCP or UDP forwarding
+        - DNS, routing, or IPv6
+        - Per-app routing
+        - UI, statistics, or logs
+        - Quick Settings tile
+        - Build, install, or update
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: TunWeave version
+      description: Provide the release version or commit SHA.
+      placeholder: 1.0.0 or 07cefb4
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation source
+      options:
+        - GitHub Release APK
+        - Locally built release APK
+        - Locally built debug APK
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      description: Include manufacturer, model, Android version, and CPU ABI when known.
+      placeholder: Pixel 8, Android 16, arm64-v8a
+    validations:
+      required: true
+
+  - type: dropdown
+    id: proxy_udp
+    attributes:
+      label: SOCKS5 UDP capability
+      description: Do not include the proxy address or credentials.
+      options:
+        - UDP is supported
+        - TCP only
+        - Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: routing
+    attributes:
+      label: Relevant routing configuration
+      description: Describe DNS, IPv6 mode, LAN bypass, per-app mode, MTU, and other relevant options without private values.
+      placeholder: IPv6 proxying enabled; global routing; default MTU; DNS address redacted as DNS_A.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest reliable sequence that reproduces the problem.
+      placeholder: |
+        1. Configure ...
+        2. Tap ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include frequency, timing, visible errors, and whether the VPN reconnects or the app exits.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs or screenshots
+      description: Attach only the minimum relevant excerpt. Remove credentials, keys, authorization values, private endpoints, local addresses, and unrelated application data.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I removed passwords, keys, tokens, authorization values, and other highly sensitive data.
+          required: true
+        - label: I am authorized to test the devices, networks, accounts, and proxy services involved.
+          required: true
