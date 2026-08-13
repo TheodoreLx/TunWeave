@@ -1,0 +1,75 @@
+name: Feature request
+description: Propose an improvement to TunWeave
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an improvement. Search existing issues first, and discuss large protocol, routing, native-library, or UI changes before investing substantial implementation work.
+
+        Do not include proxy credentials, signing material, private network details, or unredacted logs.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      options:
+        - VPN and lifecycle
+        - Proxy protocol or transport
+        - DNS, routing, or IPv6
+        - Per-app routing
+        - UI and accessibility
+        - Statistics and diagnostics
+        - Build, release, or distribution
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the user need and why the current behavior is insufficient.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Explain the intended behavior, configuration, and user experience.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Include workarounds or simpler approaches you evaluated.
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Compatibility, privacy, and security impact
+      description: Consider Android versions, device types, battery and memory use, traffic leaks, credentials, native code, and migration behavior as applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add sanitized mockups, references, standards, or implementation notes.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues and did not find an equivalent proposal.
+          required: true
+        - label: This request does not contain credentials, keys, tokens, or private network details.
+          required: true
