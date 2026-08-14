@@ -109,6 +109,10 @@ Release signing is optional and never reads credentials from tracked files.
 See [docs/signing.md](docs/signing.md) for local key generation, environment
 variables, signature verification, and backup requirements.
 
+Maintainers can use [scripts/package-release.sh](scripts/package-release.sh)
+to build, verify, and checksum consistently named release assets. The complete
+release checklist is documented in [docs/releasing.md](docs/releasing.md).
+
 ## Device tests
 
 Run the JNI loading smoke test on a connected device:
@@ -141,9 +145,9 @@ the public application ID `io.github.theodorelx.tunweave`.
 
 ## Project status
 
-TunWeave is preparing its first public release. Configuration formats,
-behavior, and UI may change before a stable release. Please review open issues
-before relying on it for unattended or critical connectivity.
+TunWeave is a young project. Configuration formats, behavior, and UI may evolve
+between releases. Review the changelog and open issues before relying on it for
+unattended or critical connectivity.
 
 ## Contributing
 
