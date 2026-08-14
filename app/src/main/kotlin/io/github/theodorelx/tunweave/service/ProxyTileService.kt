@@ -2,6 +2,8 @@ package io.github.theodorelx.tunweave.service
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
 import android.net.VpnService
@@ -26,6 +28,13 @@ class ProxyTileService : TileService() {
 
     companion object {
         private const val TAG = "ProxyTileService"
+
+        fun requestStateRefresh(context: Context) {
+            TileService.requestListeningState(
+                context,
+                ComponentName(context, ProxyTileService::class.java),
+            )
+        }
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -56,6 +65,7 @@ class ProxyTileService : TileService() {
         AppLogger.i(TAG, "用户点击了通知栏 Quick Settings 快捷磁贴")
 
         if (ProxyVpnService.isRunning()) {
+            updateTileState(VpnState.DISCONNECTING)
             val stopIntent = ProxyVpnService.buildStopIntent(this)
             startService(stopIntent)
             AppLogger.i(TAG, "磁贴触发: 请求断开 VPN")

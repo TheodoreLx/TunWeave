@@ -100,13 +100,13 @@ class ProxyVpnService : VpnService() {
     private fun loadConfigAndStart(requireAutoReconnect: Boolean) {
         if (isRunning()) return
         startForegroundNotification(getString(R.string.vpn_connecting))
-        state.value = VpnState.CONNECTING
+        publishState(VpnState.CONNECTING)
         serviceScope.launch {
             try {
                 val config = repository.configFlow.first()
                 if (requireAutoReconnect && !config.autoReconnect) {
                     AppLogger.i(TAG, "系统重启服务，但自动重连已关闭")
-                    state.value = VpnState.DISCONNECTED
+                    publishState(VpnState.DISCONNECTED)
                     stopForeground(STOP_FOREGROUND_REMOVE)
                     stopSelf()
                     return@launch
@@ -177,7 +177,7 @@ class ProxyVpnService : VpnService() {
                 }
             }
 
-            state.value = VpnState.CONNECTED
+            publishState(VpnState.CONNECTED)
             nm.notify(NOTIFICATION_ID, buildNotification(getString(R.string.vpn_connected), trafficStats.value))
 
             AppLogger.i(TAG, "VPN 服务建立完成并已成功进入运行状态！")
@@ -239,7 +239,7 @@ class ProxyVpnService : VpnService() {
     private fun handleStartFailure(message: String, error: Exception) {
         AppLogger.e(TAG, "$message: ${error.message}", error)
         cleanupResources()
-        state.value = VpnState.ERROR
+        publishState(VpnState.ERROR)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -325,10 +325,10 @@ class ProxyVpnService : VpnService() {
 
     private fun stopVpn() {
         AppLogger.i(TAG, "正在断开 VPN 服务...")
-        state.value = VpnState.DISCONNECTING
+        publishState(VpnState.DISCONNECTING)
 
         cleanupResources()
-        state.value = VpnState.DISCONNECTED
+        publishState(VpnState.DISCONNECTED)
 
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -345,7 +345,7 @@ class ProxyVpnService : VpnService() {
         AppLogger.d(TAG, "ProxyVpnService onDestroy 销毁")
         cleanupResources()
         if (state.value != VpnState.ERROR) {
-            state.value = VpnState.DISCONNECTED
+            publishState(VpnState.DISCONNECTED)
         }
         serviceScope.cancel()
         super.onDestroy()
@@ -366,6 +366,11 @@ class ProxyVpnService : VpnService() {
         tunInterface = null
         trafficMonitor.reset()
         trafficStats.value = TrafficStats()
+    }
+
+    private fun publishState(vpnState: VpnState) {
+        state.value = vpnState
+        ProxyTileService.requestStateRefresh(this)
     }
 
     private fun createNotificationChannel() {
