@@ -7,6 +7,8 @@ and the project intends to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-14
+
 ### Added
 
 - Android `VpnService` integration for SOCKS5 TCP and UDP traffic.
@@ -26,4 +28,5 @@ and the project intends to follow [Semantic Versioning](https://semver.org/).
   secrets, and private keys while retaining diagnostic network context and
   stack traces. Native HEV logging uses the credential-safe `info` level.
 
-[Unreleased]: https://github.com/TheodoreLx/TunWeave/commits/main
+[Unreleased]: https://github.com/TheodoreLx/TunWeave/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/TheodoreLx/TunWeave/releases/tag/v1.0.0
