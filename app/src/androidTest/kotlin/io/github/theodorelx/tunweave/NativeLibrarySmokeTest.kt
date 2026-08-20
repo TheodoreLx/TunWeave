@@ -15,5 +15,7 @@ class NativeLibrarySmokeTest {
             "libhev-socks5-tunnel.so failed to load or register its JNI methods",
             Tun2socksJni.isLibraryLoaded,
         )
+        // Calling the 2.17 runtime-state API verifies the upgraded method is registered.
+        Tun2socksJni.TProxyIsRunning()
     }
 }

@@ -1,10 +1,10 @@
 # Native library provenance
 
 TunWeave uses the unmodified Android JNI implementation from
-`hev-socks5-tunnel` 2.14.4 (`4d6c334`). The release archive is pinned to:
+`hev-socks5-tunnel` 2.17.1 (`9a06bc6`). The release archive is pinned to:
 
 ```text
-90e06a5dc0c139c335d50f5a1645672113a366d30066bc5ff056ab73dc39a24d
+a7b86050091c5a268d81de70b95d3bb0871ba4136160662b6496596761c2f9a7
 ```
 
 The JNI class is compiled for
@@ -14,12 +14,17 @@ bridge exposes only:
 
 - `TProxyStartService`
 - `TProxyStopService`
+- `TProxyIsRunning`
 - `TProxyGetStats`
 
-The upstream JNI signatures are `TProxyStartService(String, int): void`,
-`TProxyStopService(): void`, and `TProxyGetStats(): long[]`. Keep the Kotlin
-declarations exactly aligned: ART aborts the process during `RegisterNatives`
-when a return type differs.
+The upstream JNI signatures are `TProxyStartService(String, int): boolean`,
+`TProxyStopService(): boolean`, `TProxyIsRunning(): boolean`, and
+`TProxyGetStats(): long[]`. Keep the Kotlin declarations exactly aligned: ART
+aborts the process during `RegisterNatives` when a return type differs.
+
+The runtime-state API is the source of truth for tunnel liveness. The Android
+service polls it from a serialized background dispatcher so native shutdown or
+statistics collection cannot block the application main thread.
 
 `TProxyGetStats()` returns `[txPackets, txBytes, rxPackets, rxBytes]`. HEV reads
 TX bytes from the TUN interface, so TunWeave reports them as upload; it
@@ -44,8 +49,8 @@ builds it with `ndk-build`, and replaces files under `app/src/main/jniLibs`.
 Checked-in library SHA-256 values:
 
 ```text
-arm64-v8a    7f6b2ea5f1e344d306669aa7f36606bf73a16889d69fb94229d34c3fbd163ee4
-armeabi-v7a  e724cd04e7a7ae4910bf9bb507f0952c9cdec5fceccb6d0c12f293da464f9721
-x86          2ab697371dd3b78b51bcdff908212e024a520f4654806cd349e9bd442fece6ae
-x86_64       c40edf23a5eb200d803dd779e78d6f79c9c6c02741fc472418d791b60d542649
+arm64-v8a    f1746ec99eb91d68443753f21ff9fe77419603365e911781d0e832cc7e490b1f
+armeabi-v7a  f9caa0545bd46f317f696d056b28dce8cdbaf0357d7d7724e7593f4e962b21c8
+x86          cc4839adf7e9eec57e6e98d646749ec2401c1de017f507912097196b3806eddf
+x86_64       f7b675c94011abc07272308faf18cda48228dc7ad9d6837e83ff5b25a037d723
 ```
