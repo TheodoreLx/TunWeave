@@ -4,6 +4,7 @@ import android.net.VpnService
 import androidx.core.content.ContextCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.simpleproxy.tun2socks.Tun2socksJni
 import io.github.theodorelx.tunweave.data.VpnState
 import io.github.theodorelx.tunweave.service.ProxyVpnService
 import kotlinx.coroutines.delay
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -47,10 +49,12 @@ class VpnStartupSmokeTest {
 
         delay(5_000)
         assertTrue("Native VPN engine stopped unexpectedly", ProxyVpnService.isRunning())
+        assertTrue("Native runtime state is not running", Tun2socksJni.TProxyIsRunning())
 
         context.startService(ProxyVpnService.buildStopIntent(context))
         withTimeout(10_000) {
             ProxyVpnService.state.first { it == VpnState.DISCONNECTED }
         }
+        assertFalse("Native runtime state remained active after stop", Tun2socksJni.TProxyIsRunning())
     }
 }

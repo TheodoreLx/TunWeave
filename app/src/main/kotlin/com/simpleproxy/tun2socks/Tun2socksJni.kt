@@ -26,10 +26,13 @@ object Tun2socksJni {
     }
 
     @JvmStatic
-    external fun TProxyStartService(configPath: String, fd: Int)
+    external fun TProxyStartService(configPath: String, fd: Int): Boolean
 
     @JvmStatic
-    external fun TProxyStopService()
+    external fun TProxyStopService(): Boolean
+
+    @JvmStatic
+    external fun TProxyIsRunning(): Boolean
 
     @JvmStatic
     external fun TProxyGetStats(): LongArray?

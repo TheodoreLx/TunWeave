@@ -7,7 +7,7 @@ change the license of those components.
 ## Distributed native components
 
 The checked-in `libhev-socks5-tunnel.so` files are built from
-`hev-socks5-tunnel` 2.14.4. The release archive and library hashes are recorded
+`hev-socks5-tunnel` 2.17.1. The release archive and library hashes are recorded
 in [`docs/native.md`](docs/native.md). Its Android build links the following
 components:
 

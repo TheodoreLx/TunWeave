@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
-hev_version="2.14.4"
-hev_revision="4d6c334"
-archive_sha256="90e06a5dc0c139c335d50f5a1645672113a366d30066bc5ff056ab73dc39a24d"
+hev_version="2.17.1"
+hev_revision="9a06bc6"
+archive_sha256="a7b86050091c5a268d81de70b95d3bb0871ba4136160662b6496596761c2f9a7"
 archive_url="https://github.com/heiher/hev-socks5-tunnel/releases/download/${hev_version}/hev-socks5-tunnel-${hev_version}.tar.xz"
 
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -46,6 +46,10 @@ done
 
 if strings "${output_dir}/arm64-v8a/libhev-socks5-tunnel.so" | grep -q TProxySetVpnService; then
     echo "Unexpected custom JNI protect bridge found in output." >&2
+    exit 1
+fi
+if ! strings "${output_dir}/arm64-v8a/libhev-socks5-tunnel.so" | grep -q TProxyIsRunning; then
+    echo "Required HEV runtime-state JNI bridge is missing from output." >&2
     exit 1
 fi
 

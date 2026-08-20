@@ -36,7 +36,10 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.net.Inet6Address
 
 class ProxyVpnService : VpnService() {
@@ -71,8 +74,12 @@ class ProxyVpnService : VpnService() {
     private val tun2socks = Tun2socksManager()
     private val trafficMonitor = TrafficMonitor()
     private var monitorJob: Job? = null
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val nativeDispatcher = Dispatchers.IO.limitedParallelism(1)
+    private val serviceScope = CoroutineScope(SupervisorJob() + nativeDispatcher)
+    private val lifecycleMutex = Mutex()
     private val repository by lazy { (application as TunWeaveApp).repository }
+    @Volatile private var resourcesCleaned = true
+    @Volatile private var stopRequested = false
 
     override fun onCreate() {
         super.onCreate()
@@ -83,12 +90,10 @@ class ProxyVpnService : VpnService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         AppLogger.d(TAG, "收到 Intent Action: ${intent?.action}")
         when (intent?.action) {
-            ACTION_CONNECT -> loadConfigAndStart(requireAutoReconnect = false)
-            ACTION_DISCONNECT -> {
-                stopVpn()
-            }
-            SERVICE_INTERFACE -> loadConfigAndStart(requireAutoReconnect = false)
-            null -> loadConfigAndStart(requireAutoReconnect = true)
+            ACTION_CONNECT -> requestStart(requireAutoReconnect = false)
+            ACTION_DISCONNECT -> requestStop()
+            SERVICE_INTERFACE -> requestStart(requireAutoReconnect = false)
+            null -> requestStart(requireAutoReconnect = true)
             else -> {
                 AppLogger.w(TAG, "忽略未知的服务 Action: ${intent.action}")
                 stopSelf(startId)
@@ -97,23 +102,40 @@ class ProxyVpnService : VpnService() {
         return START_STICKY
     }
 
-    private fun loadConfigAndStart(requireAutoReconnect: Boolean) {
+    private fun requestStart(requireAutoReconnect: Boolean) {
         if (isRunning()) return
+        stopRequested = false
         startForegroundNotification(getString(R.string.vpn_connecting))
         publishState(VpnState.CONNECTING)
         serviceScope.launch {
-            try {
-                val config = repository.configFlow.first()
-                if (requireAutoReconnect && !config.autoReconnect) {
-                    AppLogger.i(TAG, "系统重启服务，但自动重连已关闭")
-                    publishState(VpnState.DISCONNECTED)
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    stopSelf()
-                    return@launch
+            lifecycleMutex.withLock {
+                try {
+                    val config = repository.configFlow.first()
+                    if (requireAutoReconnect && !config.autoReconnect) {
+                        AppLogger.i(TAG, "系统重启服务，但自动重连已关闭")
+                        publishState(VpnState.DISCONNECTED)
+                        stopForeground(STOP_FOREGROUND_REMOVE)
+                        stopSelf()
+                        return@withLock
+                    }
+                    if (!stopRequested) {
+                        startVpn(config)
+                    }
+                } catch (e: Exception) {
+                    handleStartFailure("读取代理配置失败", e)
                 }
-                startVpn(config)
-            } catch (e: Exception) {
-                handleStartFailure("读取代理配置失败", e)
+            }
+        }
+    }
+
+    private fun requestStop() {
+        stopRequested = true
+        if (state.value != VpnState.DISCONNECTED) {
+            publishState(VpnState.DISCONNECTING)
+        }
+        serviceScope.launch {
+            lifecycleMutex.withLock {
+                stopVpn()
             }
         }
     }
@@ -121,6 +143,7 @@ class ProxyVpnService : VpnService() {
     private fun startVpn(config: ProxyConfig) {
         AppLogger.setSensitiveValues(listOf(config.password))
         AppLogger.i(TAG, "开始启动 VPN 服务... [代理服务器: ${config.proxyType}://${config.proxyHost}:${config.proxyPort}]")
+        resourcesCleaned = false
         try {
             validateConfig(config)
 
@@ -162,8 +185,16 @@ class ProxyVpnService : VpnService() {
                 downloadBytes = initialNativeStats?.rxBytes ?: 0L,
             )
             monitorJob = serviceScope.launch {
-                while (true) {
+                while (isActive) {
                     delay(1000)
+                    if (!tun2socks.isRunning()) {
+                        lifecycleMutex.withLock {
+                            if (!stopRequested && state.value == VpnState.CONNECTED) {
+                                handleUnexpectedNativeExit()
+                            }
+                        }
+                        break
+                    }
                     val nativeStats = tun2socks.getTrafficStats()
                     val snapshot = trafficMonitor.snapshot(
                         uploadBytes = nativeStats?.txBytes,
@@ -238,6 +269,14 @@ class ProxyVpnService : VpnService() {
 
     private fun handleStartFailure(message: String, error: Exception) {
         AppLogger.e(TAG, "$message: ${error.message}", error)
+        cleanupResources()
+        publishState(if (stopRequested) VpnState.DISCONNECTED else VpnState.ERROR)
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
+    private fun handleUnexpectedNativeExit() {
+        AppLogger.e(TAG, "检测到原生 HEV 引擎意外退出，正在释放 VPN 资源")
         cleanupResources()
         publishState(VpnState.ERROR)
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -325,7 +364,9 @@ class ProxyVpnService : VpnService() {
 
     private fun stopVpn() {
         AppLogger.i(TAG, "正在断开 VPN 服务...")
-        publishState(VpnState.DISCONNECTING)
+        if (state.value != VpnState.DISCONNECTED) {
+            publishState(VpnState.DISCONNECTING)
+        }
 
         cleanupResources()
         publishState(VpnState.DISCONNECTED)
@@ -338,23 +379,40 @@ class ProxyVpnService : VpnService() {
 
     override fun onRevoke() {
         AppLogger.w(TAG, "收到系统通知: 用户或系统撤销了 VPN 授权")
-        stopVpn()
+        requestStop()
     }
 
     override fun onDestroy() {
         AppLogger.d(TAG, "ProxyVpnService onDestroy 销毁")
-        cleanupResources()
-        if (state.value != VpnState.ERROR) {
-            publishState(VpnState.DISCONNECTED)
+        monitorJob?.cancel()
+        monitorJob = null
+        if (resourcesCleaned) {
+            serviceScope.cancel()
+        } else {
+            if (state.value != VpnState.ERROR) {
+                publishState(VpnState.DISCONNECTING)
+            }
+            serviceScope.launch {
+                lifecycleMutex.withLock {
+                    cleanupResources()
+                    if (state.value != VpnState.ERROR) {
+                        publishState(VpnState.DISCONNECTED)
+                    }
+                }
+                serviceScope.cancel()
+            }
         }
-        serviceScope.cancel()
         super.onDestroy()
     }
 
     private fun cleanupResources() {
+        if (resourcesCleaned) return
+        resourcesCleaned = true
         monitorJob?.cancel()
         monitorJob = null
-        tun2socks.stop()
+        if (!tun2socks.stop()) {
+            AppLogger.e(TAG, "原生 HEV 引擎未能正常完成停止")
+        }
         try {
             tunInterface?.close()
             if (tunInterface != null) {

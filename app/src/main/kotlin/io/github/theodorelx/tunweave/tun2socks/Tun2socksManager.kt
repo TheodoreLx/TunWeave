@@ -13,7 +13,7 @@ import java.io.File
  */
 interface ITun2socks {
     fun start(context: Context, tunFd: Int, config: ProxyConfig): Boolean
-    fun stop()
+    fun stop(): Boolean
     fun isRunning(): Boolean
     fun getTrafficStats(): Tun2socksTrafficStats?
 }
@@ -88,8 +88,6 @@ class Tun2socksManager : ITun2socks {
         }
     }
 
-    @Volatile
-    private var running = false
     private var statsFailureLogged = false
 
     override fun start(context: Context, tunFd: Int, config: ProxyConfig): Boolean {
@@ -110,40 +108,57 @@ class Tun2socksManager : ITun2socks {
 
         return try {
             val configFile = createYamlConfigFile(context, config)
-            Tun2socksJni.TProxyStartService(configFile.absolutePath, tunFd)
-            running = true
-            statsFailureLogged = false
-            AppLogger.i(TAG, "原生 HEV 引擎启动调用已成功返回")
-            true
+            val started = Tun2socksJni.TProxyStartService(configFile.absolutePath, tunFd)
+            if (started) {
+                statsFailureLogged = false
+                AppLogger.i(TAG, "原生 HEV 引擎启动调用已成功返回")
+            } else {
+                AppLogger.e(TAG, "原生 HEV 引擎拒绝启动")
+            }
+            started
         } catch (e: LinkageError) {
-            running = false
             AppLogger.e(TAG, "原生 HEV JNI 链接失败", e)
             false
         } catch (e: Exception) {
-            running = false
             AppLogger.e(TAG, "启动原生 HEV 引擎出现异常", e)
             false
         }
     }
 
-    override fun stop() {
+    override fun stop(): Boolean {
         AppLogger.i(TAG, "停止 tun2socks 原生引擎...")
-        if (Tun2socksJni.isLibraryLoaded && isRunning()) {
-            try {
-                Tun2socksJni.TProxyStopService()
+        if (!Tun2socksJni.isLibraryLoaded) return true
+
+        return try {
+            val stopped = Tun2socksJni.TProxyStopService()
+            if (stopped) {
                 AppLogger.i(TAG, "原生 tun2socks 引擎已停止")
-            } catch (e: LinkageError) {
-                AppLogger.e(TAG, "停止原生 HEV 引擎时 JNI 链接失败", e)
-            } catch (e: Exception) {
-                AppLogger.e(TAG, "停止原生 tun2socks 引擎出现异常", e)
+                statsFailureLogged = false
+            } else {
+                AppLogger.e(TAG, "原生 tun2socks 引擎停止调用失败")
             }
+            stopped
+        } catch (e: LinkageError) {
+            AppLogger.e(TAG, "停止原生 HEV 引擎时 JNI 链接失败", e)
+            false
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "停止原生 tun2socks 引擎出现异常", e)
+            false
         }
-        running = false
-        statsFailureLogged = false
     }
 
     override fun isRunning(): Boolean {
-        return Tun2socksJni.isLibraryLoaded && running
+        if (!Tun2socksJni.isLibraryLoaded) return false
+
+        return try {
+            Tun2socksJni.TProxyIsRunning()
+        } catch (e: LinkageError) {
+            logStatsFailureOnce("读取原生 HEV 运行状态时 JNI 链接失败", e)
+            false
+        } catch (e: Exception) {
+            logStatsFailureOnce("读取原生 HEV 运行状态时出现异常", e)
+            false
+        }
     }
 
     override fun getTrafficStats(): Tun2socksTrafficStats? {

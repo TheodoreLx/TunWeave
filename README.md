@@ -135,7 +135,7 @@ disconnects. The test is skipped unless the argument is supplied.
 ## Native libraries
 
 Checked-in native libraries are reproducibly built from upstream
-`hev-socks5-tunnel` 2.14.4, revision `4d6c334`. See
+`hev-socks5-tunnel` 2.17.1, revision `9a06bc6`. See
 [docs/native.md](docs/native.md) for provenance, checksums, JNI compatibility,
 and rebuild instructions.
 
