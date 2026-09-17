@@ -14,7 +14,7 @@ data class ProxyConfig(
     // 测延迟配置
     val latencyTestUrl: String = "https://www.gstatic.com/generate_204",
     // 每应用代理
-    val perAppMode: PerAppMode = PerAppMode.DISABLED,
+    val perAppMode: PerAppMode = PerAppMode.BLACKLIST,
     val selectedApps: Set<String> = emptySet(),
 )
 
