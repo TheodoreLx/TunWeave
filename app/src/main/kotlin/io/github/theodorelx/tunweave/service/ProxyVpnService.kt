@@ -475,7 +475,8 @@ class ProxyVpnService : VpnService() {
             val up = formatSpeed(stats.uploadSpeed)
             val down = formatSpeed(stats.downloadSpeed)
             val total = formatBytes(stats.totalUpload + stats.totalDownload)
-            "↑ $up  ↓ $down | 已用 $total"
+            val memory = "%.1f MB".format(java.util.Locale.ROOT, stats.memory.totalPssMb)
+            "↑ $up  ↓ $down | 已用 $total | 内存 $memory"
         } else {
             statusText
         }

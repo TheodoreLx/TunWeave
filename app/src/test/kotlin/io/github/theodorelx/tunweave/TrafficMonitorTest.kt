@@ -133,6 +133,34 @@ class TrafficMonitorTest {
         assertEquals(2, reads)
     }
 
+    @Test
+    fun detailedPssBreakdownIsPreservedAndSanitized() {
+        val monitor = TrafficMonitor(
+            currentTimeMillis = { 0L },
+            memoryReader = {
+                ProcessMemoryStats(
+                    totalPssMb = 42f,
+                    javaPssMb = 8f,
+                    nativePssMb = 5f,
+                    otherPssMb = 29f,
+                    codePssMb = 12f,
+                    stackPssMb = 1f,
+                    graphicsPssMb = 4f,
+                    privateOtherPssMb = 3f,
+                    systemPssMb = -1f,
+                )
+            },
+        )
+
+        monitor.start()
+        val memory = monitor.snapshot().memory
+        assertEquals(12f, memory.codePssMb)
+        assertEquals(1f, memory.stackPssMb)
+        assertEquals(4f, memory.graphicsPssMb)
+        assertEquals(3f, memory.privateOtherPssMb)
+        assertEquals(0f, memory.systemPssMb)
+    }
+
     private fun createMonitor(currentTimeMillis: () -> Long): TrafficMonitor =
         TrafficMonitor(
             currentTimeMillis = currentTimeMillis,
