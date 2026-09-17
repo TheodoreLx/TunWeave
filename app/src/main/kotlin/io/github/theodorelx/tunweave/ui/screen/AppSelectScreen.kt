@@ -1,9 +1,13 @@
 package io.github.theodorelx.tunweave.ui.screen
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +61,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.theodorelx.tunweave.data.AppInfo
 import io.github.theodorelx.tunweave.data.AppListRepository
 import io.github.theodorelx.tunweave.data.PerAppMode
+import io.github.theodorelx.tunweave.data.exportAppSelection
+import io.github.theodorelx.tunweave.data.importAppSelection
 import io.github.theodorelx.tunweave.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -195,6 +201,41 @@ fun AppSelectScreen(
                             }) {
                                 Text("取消全选")
                             }
+                        }
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(
+                                ClipData.newPlainText(
+                                    "TunWeave app selection",
+                                    exportAppSelection(config.selectedApps),
+                                ),
+                            )
+                            Toast.makeText(context, "已导出 ${config.selectedApps.size} 个应用到剪贴板", Toast.LENGTH_SHORT).show()
+                        }) {
+                            Text("导出名单")
+                        }
+                        TextButton(
+                            enabled = !isLoading,
+                            onClick = {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val content = clipboard.primaryClip?.getItemAt(0)
+                                    ?.coerceToText(context)?.toString().orEmpty()
+                                val imported = importAppSelection(content)
+                                val installedPackages = installedApps.mapTo(mutableSetOf<String>()) { it.packageName }
+                                val accepted = imported.intersect(installedPackages)
+                                viewModel.updateSelectedApps(accepted)
+                                val ignored = imported.size - accepted.size
+                                Toast.makeText(
+                                    context,
+                                    "已导入 ${accepted.size} 个应用" + if (ignored > 0) "，忽略 $ignored 个未安装应用" else "",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            },
+                        ) {
+                            Text("从剪贴板导入")
                         }
                     }
                 }

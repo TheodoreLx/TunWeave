@@ -6,6 +6,8 @@ import io.github.theodorelx.tunweave.data.NetworkAddressParser
 import io.github.theodorelx.tunweave.data.PerAppMode
 import io.github.theodorelx.tunweave.data.ProxyConfig
 import io.github.theodorelx.tunweave.data.ProxyType
+import io.github.theodorelx.tunweave.data.exportAppSelection
+import io.github.theodorelx.tunweave.data.importAppSelection
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -24,7 +26,7 @@ class ProxyConfigTest {
         assertEquals("https://www.gstatic.com/generate_204", config.latencyTestUrl)
         assertTrue(config.bypassLan)
         assertEquals(1500, config.mtu)
-        assertEquals(PerAppMode.DISABLED, config.perAppMode)
+        assertEquals(PerAppMode.BLACKLIST, config.perAppMode)
         assertTrue(config.selectedApps.isEmpty())
     }
 
@@ -41,6 +43,16 @@ class ProxyConfigTest {
         assertEquals(1080, copy.proxyPort)
         assertEquals(ProxyType.SOCKS5, copy.proxyType)
         assertEquals("https://cp.cloudflare.com/generate_204", copy.latencyTestUrl)
+    }
+
+    @Test
+    fun appSelectionTransferUsesPortablePackageListAndRejectsInvalidEntries() {
+        val exported = exportAppSelection(setOf("com.tencent.mm", "com.example.app"))
+        assertTrue(exported.startsWith("# TunWeave app selection v1"))
+        assertEquals(
+            setOf("com.tencent.mm", "com.example.app"),
+            importAppSelection("$exported\ninvalid package\ncom.example.app"),
+        )
     }
 
     @Test

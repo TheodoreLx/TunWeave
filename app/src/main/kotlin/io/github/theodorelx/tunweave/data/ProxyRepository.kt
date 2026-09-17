@@ -1,6 +1,8 @@
 package io.github.theodorelx.tunweave.data
 
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -21,6 +23,24 @@ class ProxyRepository(private val context: Context) {
 
     private companion object {
         private const val TAG = "ProxyRepository"
+
+        val DEFAULT_DOMESTIC_APP_PACKAGES = setOf(
+            "com.eg.android.AlipayGphone", "com.tencent.mm", "com.tencent.mobileqq",
+            "com.sina.weibo", "com.ss.android.ugc.aweme", "com.ss.android.article.news",
+            "com.taobao.taobao", "com.tmall.wireless", "com.jingdong.app.mall",
+            "com.xunmeng.pinduoduo", "com.meituan", "com.dianping.v1", "com.sankuai.meituan",
+            "com.unionpay", "com.tencent.qqlive", "com.qiyi.video", "com.youku.phone",
+            "tv.danmaku.bili", "com.netease.cloudmusic", "com.tencent.music",
+        )
+    }
+
+    private val defaultDomesticApps: Set<String> by lazy {
+        val launcherIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        context.packageManager.queryIntentActivities(launcherIntent, PackageManager.MATCH_ALL)
+            .asSequence()
+            .map { it.activityInfo.packageName }
+            .filter(DEFAULT_DOMESTIC_APP_PACKAGES::contains)
+            .toSet()
     }
 
     private object Keys {
@@ -43,6 +63,11 @@ class ProxyRepository(private val context: Context) {
         val defaults = ProxyConfig()
         val storedIpv6Mode = prefs[Keys.IPV6_MODE]
         val storedBypassAddresses = prefs[Keys.BYPASS_ADDRESSES]
+        val selectedApps = if (prefs.contains(Keys.SELECTED_APPS)) {
+            prefs[Keys.SELECTED_APPS] ?: emptySet()
+        } else {
+            defaultDomesticApps
+        }
         val config = ProxyConfig(
             proxyHost = prefs[Keys.PROXY_HOST] ?: defaults.proxyHost,
             proxyPort = prefs[Keys.PROXY_PORT] ?: defaults.proxyPort,
@@ -67,7 +92,7 @@ class ProxyRepository(private val context: Context) {
             perAppMode = prefs[Keys.PER_APP_MODE]?.let {
                 try { PerAppMode.valueOf(it) } catch (_: Exception) { defaults.perAppMode }
             } ?: defaults.perAppMode,
-            selectedApps = prefs[Keys.SELECTED_APPS] ?: defaults.selectedApps,
+            selectedApps = selectedApps,
         )
         AppLogger.setSensitiveValues(listOf(config.password))
         AppLogger.d(TAG, "从 DataStore 读取代理配置: ${config.proxyType}://${config.proxyHost}:${config.proxyPort}")
