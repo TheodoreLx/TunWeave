@@ -11,6 +11,8 @@ import android.net.IpPrefix
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.os.PowerManager
+import android.os.SystemClock
 import android.system.OsConstants
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -52,6 +54,11 @@ class ProxyVpnService : VpnService() {
         const val ACTION_DISCONNECT = "io.github.theodorelx.tunweave.DISCONNECT"
 
         const val NOTIFICATION_ID = 1
+
+        private const val ACTIVE_MONITOR_INTERVAL_MS = 1_000L
+        private const val SCREEN_OFF_MONITOR_INTERVAL_MS = 10_000L
+        private const val SCREEN_OFF_NOTIFICATION_INTERVAL_MS = 60_000L
+        private const val SCREEN_OFF_MEMORY_INTERVAL_MS = 60_000L
         const val CHANNEL_ID = "vpn_channel"
 
         val state = MutableStateFlow(VpnState.DISCONNECTED)
@@ -180,6 +187,8 @@ class ProxyVpnService : VpnService() {
 
             // Start traffic monitoring and notification updates
             val nm = getSystemService(NotificationManager::class.java)
+            val powerManager = getSystemService(PowerManager::class.java)
+            var lastNotificationUpdateMs = SystemClock.elapsedRealtime()
             val initialNativeStats = tun2socks.getTrafficStats()
             trafficMonitor.start(
                 uploadBytes = initialNativeStats?.txBytes ?: 0L,
@@ -187,7 +196,11 @@ class ProxyVpnService : VpnService() {
             )
             monitorJob = serviceScope.launch {
                 while (isActive) {
-                    delay(1000)
+                    val isInteractive = powerManager.isInteractive
+                    delay(
+                        if (isInteractive) ACTIVE_MONITOR_INTERVAL_MS
+                        else SCREEN_OFF_MONITOR_INTERVAL_MS,
+                    )
                     if (!tun2socks.isRunning()) {
                         lifecycleMutex.withLock {
                             if (!stopRequested && state.value == VpnState.CONNECTED) {
@@ -200,11 +213,20 @@ class ProxyVpnService : VpnService() {
                     val snapshot = trafficMonitor.snapshot(
                         uploadBytes = nativeStats?.txBytes,
                         downloadBytes = nativeStats?.rxBytes,
+                        memorySampleIntervalMs = if (isInteractive) {
+                            TrafficMonitor.MEMORY_SAMPLE_INTERVAL_MS
+                        } else {
+                            SCREEN_OFF_MEMORY_INTERVAL_MS
+                        },
                     )
                     trafficStats.value = snapshot
 
-                    if (state.value == VpnState.CONNECTED) {
+                    val now = SystemClock.elapsedRealtime()
+                    val shouldRefreshNotification = isInteractive ||
+                        now - lastNotificationUpdateMs >= SCREEN_OFF_NOTIFICATION_INTERVAL_MS
+                    if (state.value == VpnState.CONNECTED && shouldRefreshNotification) {
                         nm.notify(NOTIFICATION_ID, buildNotification(getString(R.string.vpn_connected), snapshot))
+                        lastNotificationUpdateMs = now
                     }
                 }
             }
