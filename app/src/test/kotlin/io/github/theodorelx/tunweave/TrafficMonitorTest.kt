@@ -112,6 +112,27 @@ class TrafficMonitorTest {
         assertEquals(2, reads)
     }
 
+    @Test
+    fun pssMemorySupportsLongerBackgroundSampleInterval() {
+        var now = 0L
+        var reads = 0
+        val monitor = TrafficMonitor(
+            currentTimeMillis = { now },
+            memoryReader = {
+                reads++
+                ProcessMemoryStats(totalPssMb = reads.toFloat())
+            },
+        )
+
+        monitor.start()
+        now += 30_000L
+        monitor.snapshot(memorySampleIntervalMs = 60_000L)
+        assertEquals(1, reads)
+        now += 30_000L
+        monitor.snapshot(memorySampleIntervalMs = 60_000L)
+        assertEquals(2, reads)
+    }
+
     private fun createMonitor(currentTimeMillis: () -> Long): TrafficMonitor =
         TrafficMonitor(
             currentTimeMillis = currentTimeMillis,

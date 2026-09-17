@@ -55,7 +55,11 @@ class TrafficMonitor(
      * Consumes HEV's absolute byte counters and returns session-relative totals.
      * A missing sample keeps totals intact and reports zero instantaneous speed.
      */
-    fun snapshot(uploadBytes: Long? = null, downloadBytes: Long? = null): TrafficStats {
+    fun snapshot(
+        uploadBytes: Long? = null,
+        downloadBytes: Long? = null,
+        memorySampleIntervalMs: Long = MEMORY_SAMPLE_INTERVAL_MS,
+    ): TrafficStats {
         val now = currentTimeMillis()
         if (!started) {
             startTimeMs = now
@@ -85,7 +89,7 @@ class TrafficMonitor(
         }
 
         val connectedSec = (now - startTimeMs).coerceAtLeast(0L) / 1000L
-        sampleMemoryIfNeeded(now)
+        sampleMemoryIfNeeded(now, memorySampleIntervalMs.coerceAtLeast(1L))
 
         return TrafficStats(
             uploadSpeed = uploadSpeed,
@@ -118,10 +122,10 @@ class TrafficMonitor(
     private fun bytesPerSecond(bytes: Long, durationMs: Long): Long =
         (bytes.toDouble() * 1000.0 / durationMs.toDouble()).toLong()
 
-    private fun sampleMemoryIfNeeded(now: Long) {
+    private fun sampleMemoryIfNeeded(now: Long, intervalMs: Long = MEMORY_SAMPLE_INTERVAL_MS) {
         val lastSample = lastMemorySampleTimeMs
         if (lastSample != null && now >= lastSample &&
-            now - lastSample < MEMORY_SAMPLE_INTERVAL_MS
+            now - lastSample < intervalMs
         ) {
             return
         }
