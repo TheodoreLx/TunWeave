@@ -21,11 +21,19 @@ class TrafficMonitor(
             Debug.getMemoryInfo(memoryInfo)
             return ProcessMemoryStats(
                 totalPssMb = memoryInfo.totalPss.kbToMb(),
-                javaPssMb = memoryInfo.dalvikPss.kbToMb(),
-                nativePssMb = memoryInfo.nativePss.kbToMb(),
+                javaPssMb = memoryInfo.summaryMb("summary.java-heap", memoryInfo.dalvikPss),
+                nativePssMb = memoryInfo.summaryMb("summary.native-heap", memoryInfo.nativePss),
                 otherPssMb = memoryInfo.otherPss.kbToMb(),
+                codePssMb = memoryInfo.summaryMb("summary.code"),
+                stackPssMb = memoryInfo.summaryMb("summary.stack"),
+                graphicsPssMb = memoryInfo.summaryMb("summary.graphics"),
+                privateOtherPssMb = memoryInfo.summaryMb("summary.private-other"),
+                systemPssMb = memoryInfo.summaryMb("summary.system"),
             )
         }
+
+        private fun Debug.MemoryInfo.summaryMb(key: String, fallbackKb: Int = 0): Float =
+            (getMemoryStat(key)?.toIntOrNull() ?: fallbackKb).kbToMb()
 
         private fun Int.kbToMb(): Float = this / 1024f
     }
@@ -143,5 +151,10 @@ class TrafficMonitor(
         javaPssMb = javaPssMb.coerceAtLeast(0f),
         nativePssMb = nativePssMb.coerceAtLeast(0f),
         otherPssMb = otherPssMb.coerceAtLeast(0f),
+        codePssMb = codePssMb.coerceAtLeast(0f),
+        stackPssMb = stackPssMb.coerceAtLeast(0f),
+        graphicsPssMb = graphicsPssMb.coerceAtLeast(0f),
+        privateOtherPssMb = privateOtherPssMb.coerceAtLeast(0f),
+        systemPssMb = systemPssMb.coerceAtLeast(0f),
     )
 }

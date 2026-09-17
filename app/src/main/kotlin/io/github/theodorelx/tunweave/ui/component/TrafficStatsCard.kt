@@ -131,23 +131,34 @@ fun TrafficStatsCard(
                 )
             }
 
-            Row(modifier = Modifier.fillMaxWidth()) {
-                MemoryStatItem(
-                    label = "Java",
-                    value = stats.memory.javaPssMb,
-                    modifier = Modifier.weight(1f),
-                )
-                MemoryStatItem(
-                    label = "Native",
-                    value = stats.memory.nativePssMb,
-                    modifier = Modifier.weight(1f),
-                )
-                MemoryStatItem(
-                    label = "其他",
-                    value = stats.memory.otherPssMb,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            MemoryStatsRow(
+                items = listOf(
+                    "Java" to stats.memory.javaPssMb,
+                    "Native" to stats.memory.nativePssMb,
+                    "代码" to stats.memory.codePssMb,
+                    "图形" to stats.memory.graphicsPssMb,
+                ),
+            )
+            MemoryStatsRow(
+                items = listOf(
+                    "栈" to stats.memory.stackPssMb,
+                    "私有其他" to stats.memory.privateOtherPssMb,
+                    "系统/共享" to stats.memory.systemPssMb,
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MemoryStatsRow(items: List<Pair<String, Float>>) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        items.forEach { (label, value) ->
+            MemoryStatItem(
+                label = label,
+                value = value,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }

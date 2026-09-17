@@ -14,4 +14,9 @@ data class ProcessMemoryStats(
     val javaPssMb: Float = 0f,
     val nativePssMb: Float = 0f,
     val otherPssMb: Float = 0f,
+    val codePssMb: Float = 0f,
+    val stackPssMb: Float = 0f,
+    val graphicsPssMb: Float = 0f,
+    val privateOtherPssMb: Float = 0f,
+    val systemPssMb: Float = 0f,
 )
