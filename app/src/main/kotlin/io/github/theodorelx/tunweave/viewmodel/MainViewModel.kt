@@ -90,16 +90,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         debounceSave()
     }
 
-    fun updateDnsServer(dns: String) {
-        _proxyConfig.value = _proxyConfig.value.copy(dnsServer = dns)
-        debounceSave()
-    }
-
-    fun updateDnsServerAlt(dns: String) {
-        _proxyConfig.value = _proxyConfig.value.copy(dnsServerAlt = dns)
-        debounceSave()
-    }
-
     fun updateIpv6Mode(mode: Ipv6Mode) {
         _proxyConfig.value = _proxyConfig.value.copy(ipv6Mode = mode)
         debounceSave()

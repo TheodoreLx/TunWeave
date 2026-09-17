@@ -136,31 +136,6 @@ fun SettingsScreen(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
 
-            // DNS Section
-            SectionHeader("DNS 配置")
-
-            OutlinedTextField(
-                value = config.dnsServer,
-                onValueChange = { viewModel.updateDnsServer(it) },
-                label = { Text("主 DNS 服务器") },
-                placeholder = { Text("223.5.5.5") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            OutlinedTextField(
-                value = config.dnsServerAlt,
-                onValueChange = { viewModel.updateDnsServerAlt(it) },
-                label = { Text("备用 DNS 服务器") },
-                placeholder = { Text("114.114.114.114") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(8.dp))
-
             SectionHeader("IPv6")
 
             Row(

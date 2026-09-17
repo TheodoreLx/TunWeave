@@ -29,8 +29,6 @@ class ProxyRepository(private val context: Context) {
         val PROXY_TYPE = stringPreferencesKey("proxy_type")
         val USERNAME = stringPreferencesKey("username")
         val PASSWORD = stringPreferencesKey("password")
-        val DNS_SERVER = stringPreferencesKey("dns_server")
-        val DNS_SERVER_ALT = stringPreferencesKey("dns_server_alt")
         val IPV6_MODE = stringPreferencesKey("ipv6_mode")
         val BYPASS_LAN = booleanPreferencesKey("bypass_lan")
         val BYPASS_ADDRESSES = stringPreferencesKey("bypass_addresses")
@@ -53,8 +51,6 @@ class ProxyRepository(private val context: Context) {
             } ?: defaults.proxyType,
             username = prefs[Keys.USERNAME] ?: defaults.username,
             password = decryptPassword(prefs[Keys.PASSWORD] ?: defaults.password),
-            dnsServer = prefs[Keys.DNS_SERVER] ?: defaults.dnsServer,
-            dnsServerAlt = prefs[Keys.DNS_SERVER_ALT] ?: defaults.dnsServerAlt,
             ipv6Mode = storedIpv6Mode?.let {
                 try { Ipv6Mode.valueOf(it) } catch (_: Exception) { defaults.ipv6Mode }
             } ?: defaults.ipv6Mode,
@@ -86,8 +82,6 @@ class ProxyRepository(private val context: Context) {
             prefs[Keys.PROXY_TYPE] = config.proxyType.name
             prefs[Keys.USERNAME] = config.username
             prefs[Keys.PASSWORD] = credentialCipher.encrypt(config.password)
-            prefs[Keys.DNS_SERVER] = config.dnsServer
-            prefs[Keys.DNS_SERVER_ALT] = config.dnsServerAlt
             prefs[Keys.IPV6_MODE] = config.ipv6Mode.name
             prefs[Keys.BYPASS_LAN] = config.bypassLan
             prefs[Keys.BYPASS_ADDRESSES] = config.bypassAddresses

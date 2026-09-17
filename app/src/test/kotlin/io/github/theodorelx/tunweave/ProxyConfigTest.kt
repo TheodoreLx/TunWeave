@@ -18,8 +18,6 @@ class ProxyConfigTest {
         assertEquals("", config.proxyHost)
         assertEquals(1080, config.proxyPort)
         assertEquals(ProxyType.SOCKS5, config.proxyType)
-        assertEquals("223.5.5.5", config.dnsServer)
-        assertEquals("114.114.114.114", config.dnsServerAlt)
         assertEquals(Ipv6Mode.PROXY, config.ipv6Mode)
         assertEquals(DEFAULT_BYPASS_ADDRESSES, config.bypassAddresses)
         assertTrue(config.bypassAddresses.contains("fc00::/7"))
