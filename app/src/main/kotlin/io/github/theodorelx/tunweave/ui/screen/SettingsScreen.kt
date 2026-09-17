@@ -3,7 +3,6 @@ package io.github.theodorelx.tunweave.ui.screen
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.theodorelx.tunweave.data.Ipv6Mode
 import io.github.theodorelx.tunweave.data.PerAppMode
+import io.github.theodorelx.tunweave.ui.component.tvClickableItem
 import io.github.theodorelx.tunweave.util.AppLogger
 import io.github.theodorelx.tunweave.util.LogLevel
 import io.github.theodorelx.tunweave.viewmodel.MainViewModel
@@ -112,7 +112,10 @@ fun SettingsScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onNavigateToAppSelect() },
+                    .tvClickableItem(
+                        onClick = { onNavigateToAppSelect() },
+                        shape = MaterialTheme.shapes.medium,
+                    ),
                 shape = MaterialTheme.shapes.medium,
                 color = MaterialTheme.colorScheme.surfaceVariant,
             ) {

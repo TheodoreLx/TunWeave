@@ -60,6 +60,7 @@ import io.github.theodorelx.tunweave.data.AppListRepository
 import io.github.theodorelx.tunweave.data.PerAppMode
 import io.github.theodorelx.tunweave.data.exportAppSelection
 import io.github.theodorelx.tunweave.data.importAppSelection
+import io.github.theodorelx.tunweave.ui.component.tvClickableItem
 import io.github.theodorelx.tunweave.ui.component.ReleaseUiDataWhenBackgrounded
 import io.github.theodorelx.tunweave.viewmodel.MainViewModel
 
@@ -315,7 +316,10 @@ private fun AppItemRow(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onToggle() },
+            .tvClickableItem(
+                onClick = { onToggle() },
+                shape = MaterialTheme.shapes.extraSmall,
+            ),
     ) {
         Row(
             modifier = Modifier
