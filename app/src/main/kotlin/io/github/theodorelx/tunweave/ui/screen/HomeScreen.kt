@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,7 +43,6 @@ import io.github.theodorelx.tunweave.viewmodel.MainViewModel
 fun HomeScreen(
     viewModel: MainViewModel,
     onNavigateToSettings: () -> Unit,
-    onNavigateToLogs: () -> Unit,
     onRequestVpnPermission: (Intent) -> Unit,
 ) {
     val vpnState by ProxyVpnService.state.collectAsStateWithLifecycle()
@@ -65,9 +63,6 @@ fun HomeScreen(
             CenterAlignedTopAppBar(
                 title = { Text("TunWeave") },
                 actions = {
-                    IconButton(onClick = onNavigateToLogs) {
-                        Icon(Icons.Default.BugReport, contentDescription = "日志")
-                    }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "设置")
                     }

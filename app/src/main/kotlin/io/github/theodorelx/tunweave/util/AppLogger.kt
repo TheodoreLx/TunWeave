@@ -1,9 +1,6 @@
 package io.github.theodorelx.tunweave.util
 
 import android.util.Log
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -15,8 +12,8 @@ data class LogEntry(
     val message: String,
 )
 
-enum class LogLevel {
-    DEBUG, INFO, WARN, ERROR
+enum class LogLevel(val displayName: String) {
+    DEBUG("调试"), INFO("信息"), WARN("警告"), ERROR("错误")
 }
 
 object AppLogger {
@@ -50,11 +47,17 @@ object AppLogger {
     @Volatile
     private var sensitiveValues: Set<String> = emptySet()
 
-    private val _logs = MutableStateFlow<List<LogEntry>>(emptyList())
-    val logs: StateFlow<List<LogEntry>> = _logs.asStateFlow()
+    @Volatile
+    private var loggingEnabled = false
+
+    @Volatile
+    private var minimumLevel = LogLevel.INFO
+
+    private val logs = ArrayDeque<LogEntry>(MAX_LOGS)
 
     @Synchronized
     fun log(level: LogLevel, tag: String, message: String) {
+        if (!loggingEnabled || level.ordinal < minimumLevel.ordinal) return
         val safeMessage = redactSensitiveData(message)
         // Output to Android logcat safely (handles JVM unit tests without Log stubbing)
         try {
@@ -76,12 +79,10 @@ object AppLogger {
             message = safeMessage,
         )
 
-        val currentList = _logs.value.toMutableList()
-        if (currentList.size >= MAX_LOGS) {
-            currentList.removeAt(0)
+        if (logs.size >= MAX_LOGS) {
+            logs.removeFirst()
         }
-        currentList.add(entry)
-        _logs.value = currentList
+        logs.addLast(entry)
     }
 
     fun d(tag: String, message: String) = log(LogLevel.DEBUG, tag, message)
@@ -108,6 +109,13 @@ object AppLogger {
         sensitiveValues = values.filter { it.isNotEmpty() }.toSet()
     }
 
+    @Synchronized
+    fun configure(enabled: Boolean, level: LogLevel) {
+        loggingEnabled = enabled
+        minimumLevel = level
+        if (!enabled) logs.clear()
+    }
+
     internal fun redactSensitiveData(message: String): String {
         var redacted = message
         sensitiveValues.sortedByDescending { it.length }.forEach { secret ->
@@ -121,7 +129,24 @@ object AppLogger {
         return redacted
     }
 
+    @Synchronized
     fun clear() {
-        _logs.value = emptyList()
+        logs.clear()
+    }
+
+    @Synchronized
+    fun snapshot(): List<LogEntry> = logs.toList()
+
+    @Synchronized
+    fun exportText(): String = logs.joinToString("\n") { entry ->
+        "[${entry.timestamp}][${entry.level}][${entry.tag}] ${entry.message}"
+    }
+
+    /** Keeps actionable diagnostics while releasing screen-only log history. */
+    @Synchronized
+    fun trimForBackground() {
+        val essential = logs.filter { it.level == LogLevel.WARN || it.level == LogLevel.ERROR }
+        logs.clear()
+        logs.addAll(essential)
     }
 }

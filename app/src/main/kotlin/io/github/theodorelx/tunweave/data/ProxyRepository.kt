@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import io.github.theodorelx.tunweave.util.AppLogger
+import io.github.theodorelx.tunweave.util.LogLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -54,6 +55,9 @@ class ProxyRepository(private val context: Context) {
         val BYPASS_ADDRESSES = stringPreferencesKey("bypass_addresses")
         val MTU = intPreferencesKey("mtu")
         val AUTO_RECONNECT = booleanPreferencesKey("auto_reconnect")
+        val LOGGING_ENABLED = booleanPreferencesKey("logging_enabled")
+        val LOG_LEVEL = stringPreferencesKey("log_level")
+        val LEGACY_DEBUG_LOGGING_ENABLED = booleanPreferencesKey("debug_logging_enabled")
         val LATENCY_TEST_URL = stringPreferencesKey("latency_test_url")
         val PER_APP_MODE = stringPreferencesKey("per_app_mode")
         val SELECTED_APPS = stringSetPreferencesKey("selected_apps")
@@ -88,6 +92,16 @@ class ProxyRepository(private val context: Context) {
             },
             mtu = prefs[Keys.MTU] ?: defaults.mtu,
             autoReconnect = prefs[Keys.AUTO_RECONNECT] ?: defaults.autoReconnect,
+            loggingEnabled = prefs[Keys.LOGGING_ENABLED]
+                ?: prefs[Keys.LEGACY_DEBUG_LOGGING_ENABLED]
+                ?: defaults.loggingEnabled,
+            logLevel = prefs[Keys.LOG_LEVEL]?.let {
+                try { LogLevel.valueOf(it) } catch (_: Exception) { defaults.logLevel }
+            } ?: if (prefs[Keys.LEGACY_DEBUG_LOGGING_ENABLED] == true) {
+                LogLevel.DEBUG
+            } else {
+                defaults.logLevel
+            },
             latencyTestUrl = prefs[Keys.LATENCY_TEST_URL] ?: defaults.latencyTestUrl,
             perAppMode = prefs[Keys.PER_APP_MODE]?.let {
                 try { PerAppMode.valueOf(it) } catch (_: Exception) { defaults.perAppMode }
@@ -95,6 +109,7 @@ class ProxyRepository(private val context: Context) {
             selectedApps = selectedApps,
         )
         AppLogger.setSensitiveValues(listOf(config.password))
+        AppLogger.configure(config.loggingEnabled, config.logLevel)
         AppLogger.d(TAG, "从 DataStore 读取代理配置: ${config.proxyType}://${config.proxyHost}:${config.proxyPort}")
         config
     }
@@ -112,6 +127,8 @@ class ProxyRepository(private val context: Context) {
             prefs[Keys.BYPASS_ADDRESSES] = config.bypassAddresses
             prefs[Keys.MTU] = config.mtu
             prefs[Keys.AUTO_RECONNECT] = config.autoReconnect
+            prefs[Keys.LOGGING_ENABLED] = config.loggingEnabled
+            prefs[Keys.LOG_LEVEL] = config.logLevel.name
             prefs[Keys.LATENCY_TEST_URL] = config.latencyTestUrl
             prefs[Keys.PER_APP_MODE] = config.perAppMode.name
             prefs[Keys.SELECTED_APPS] = config.selectedApps

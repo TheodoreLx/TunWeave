@@ -1,5 +1,7 @@
 package io.github.theodorelx.tunweave.data
 
+import io.github.theodorelx.tunweave.util.LogLevel
+
 data class ProxyConfig(
     val proxyHost: String = "",
     val proxyPort: Int = 1080,
@@ -11,6 +13,8 @@ data class ProxyConfig(
     val bypassAddresses: String = DEFAULT_BYPASS_ADDRESSES,
     val mtu: Int = 1500,
     val autoReconnect: Boolean = true,
+    val loggingEnabled: Boolean = false,
+    val logLevel: LogLevel = LogLevel.INFO,
     // 测延迟配置
     val latencyTestUrl: String = "https://www.gstatic.com/generate_204",
     // 每应用代理

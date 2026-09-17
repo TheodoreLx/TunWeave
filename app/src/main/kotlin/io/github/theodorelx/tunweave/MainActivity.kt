@@ -16,7 +16,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.theodorelx.tunweave.ui.screen.AppSelectScreen
 import io.github.theodorelx.tunweave.ui.screen.HomeScreen
-import io.github.theodorelx.tunweave.ui.screen.LogScreen
 import io.github.theodorelx.tunweave.ui.screen.SettingsScreen
 import io.github.theodorelx.tunweave.ui.theme.TunWeaveTheme
 import io.github.theodorelx.tunweave.viewmodel.MainViewModel
@@ -69,7 +68,6 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             viewModel = mainViewModel,
                             onNavigateToSettings = { navController.navigate("settings") },
-                            onNavigateToLogs = { navController.navigate("logs") },
                             onRequestVpnPermission = { vpnPermissionLauncher.launch(it) },
                         )
                     }
@@ -78,17 +76,11 @@ class MainActivity : ComponentActivity() {
                             viewModel = mainViewModel,
                             onBack = { navController.popBackStack() },
                             onNavigateToAppSelect = { navController.navigate("app_select") },
-                            onNavigateToLogs = { navController.navigate("logs") },
                         )
                     }
                     composable("app_select") {
                         AppSelectScreen(
                             viewModel = mainViewModel,
-                            onBack = { navController.popBackStack() },
-                        )
-                    }
-                    composable("logs") {
-                        LogScreen(
                             onBack = { navController.popBackStack() },
                         )
                     }
