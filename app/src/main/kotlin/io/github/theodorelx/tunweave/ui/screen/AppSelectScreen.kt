@@ -4,9 +4,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -48,11 +45,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +60,7 @@ import io.github.theodorelx.tunweave.data.AppListRepository
 import io.github.theodorelx.tunweave.data.PerAppMode
 import io.github.theodorelx.tunweave.data.exportAppSelection
 import io.github.theodorelx.tunweave.data.importAppSelection
+import io.github.theodorelx.tunweave.ui.component.ReleaseUiDataWhenBackgrounded
 import io.github.theodorelx.tunweave.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,18 +70,36 @@ fun AppSelectScreen(
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
+    val appListRepository = remember(context) { AppListRepository(context) }
     val config by viewModel.proxyConfig.collectAsStateWithLifecycle()
 
     var installedApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
     var filterSystemApps by remember { mutableStateOf(false) }
+    var reloadGeneration by remember { mutableStateOf(0) }
+    var isUiVisible by remember { mutableStateOf(true) }
 
-    LaunchedEffect(Unit) {
-        val repo = AppListRepository(context)
-        installedApps = repo.getInstalledApps()
+    LaunchedEffect(reloadGeneration, isUiVisible) {
+        if (!isUiVisible) return@LaunchedEffect
+        installedApps = appListRepository.getInstalledApps()
         isLoading = false
     }
+
+    ReleaseUiDataWhenBackgrounded(
+        onRelease = {
+            isUiVisible = false
+            installedApps = emptyList()
+            searchQuery = ""
+            filterSystemApps = false
+            appListRepository.clearIconCache()
+        },
+        onResume = {
+            isUiVisible = true
+            isLoading = true
+            reloadGeneration += 1
+        },
+    )
 
     val filteredApps = remember(installedApps, searchQuery, filterSystemApps) {
         installedApps.filter { app ->
@@ -265,6 +281,7 @@ fun AppSelectScreen(
                                 onToggle = {
                                     viewModel.toggleAppSelected(app.packageName)
                                 },
+                                loadIcon = appListRepository::getAppIcon,
                             )
                         }
                     }
@@ -293,6 +310,7 @@ private fun AppItemRow(
     app: AppInfo,
     isChecked: Boolean,
     onToggle: () -> Unit,
+    loadIcon: suspend (String) -> Bitmap?,
 ) {
     Surface(
         modifier = Modifier
@@ -306,7 +324,10 @@ private fun AppItemRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // App icon
-            val imageBitmap = remember(app.icon) { app.icon?.toImageBitmap() }
+            val iconBitmap by produceState<Bitmap?>(null, app.packageName) {
+                value = loadIcon(app.packageName)
+            }
+            val imageBitmap = remember(iconBitmap) { iconBitmap?.asImageBitmap() }
             if (imageBitmap != null) {
                 Image(
                     bitmap = imageBitmap,
@@ -361,22 +382,5 @@ private fun AppItemRow(
                 onCheckedChange = { onToggle() },
             )
         }
-    }
-}
-
-private fun Drawable.toImageBitmap(): ImageBitmap? {
-    try {
-        if (this is BitmapDrawable && this.bitmap != null) {
-            return this.bitmap.asImageBitmap()
-        }
-        val width = if (intrinsicWidth > 0) intrinsicWidth else 96
-        val height = if (intrinsicHeight > 0) intrinsicHeight else 96
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        setBounds(0, 0, canvas.width, canvas.height)
-        draw(canvas)
-        return bitmap.asImageBitmap()
-    } catch (_: Exception) {
-        return null
     }
 }
