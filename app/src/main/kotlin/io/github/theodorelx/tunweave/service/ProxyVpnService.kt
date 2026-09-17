@@ -18,6 +18,7 @@ import io.github.theodorelx.tunweave.MainActivity
 import io.github.theodorelx.tunweave.R
 import io.github.theodorelx.tunweave.TunWeaveApp
 import io.github.theodorelx.tunweave.data.Ipv6Mode
+import io.github.theodorelx.tunweave.data.MAP_DNS_ADDRESS
 import io.github.theodorelx.tunweave.data.NetworkAddressParser
 import io.github.theodorelx.tunweave.data.PerAppMode
 import io.github.theodorelx.tunweave.data.ProxyConfig
@@ -231,27 +232,17 @@ class ProxyVpnService : VpnService() {
         ) {
             "白名单模式至少需要选择一个应用"
         }
-        val dnsServers = listOf(config.dnsServer, config.dnsServerAlt)
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-        require(dnsServers.isNotEmpty()) { "至少需要配置一个 DNS 服务器" }
-        dnsServers.forEach { server ->
-            val address = NetworkAddressParser.parseNumericAddress(server)
-            require(config.ipv6Mode != Ipv6Mode.BLOCK || address !is Inet6Address) {
-                "IPv6 阻断模式不能使用 IPv6 DNS 服务器"
-            }
+        require(runCatching {
+            NetworkAddressParser.parseNumericAddress(config.proxyHost.trim())
+        }.isSuccess) {
+            "SOCKS5 远端解析要求 SOCKS5 服务器使用数值 IP，避免连接节点时发生本地 DNS 解析"
         }
     }
 
     private fun configureDns(builder: Builder, config: ProxyConfig) {
-        listOf(config.dnsServer, config.dnsServerAlt)
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .forEachIndexed { index, server ->
-                val address = NetworkAddressParser.parseNumericAddress(server)
-                builder.addDnsServer(address)
-                AppLogger.d(TAG, "设置${if (index == 0) "主" else "备用"} DNS: ${address.hostAddress}")
-            }
+        val address = NetworkAddressParser.parseNumericAddress(MAP_DNS_ADDRESS)
+        builder.addDnsServer(address)
+        AppLogger.d(TAG, "设置 MapDNS 虚拟 DNS: ${address.hostAddress}")
     }
 
     private fun startForegroundNotification(statusText: String) {

@@ -3,6 +3,10 @@ package io.github.theodorelx.tunweave.tun2socks
 import android.content.Context
 import com.simpleproxy.tun2socks.Tun2socksJni
 import io.github.theodorelx.tunweave.data.Ipv6Mode
+import io.github.theodorelx.tunweave.data.MAP_DNS_ADDRESS
+import io.github.theodorelx.tunweave.data.MAP_DNS_CACHE_SIZE
+import io.github.theodorelx.tunweave.data.MAP_DNS_NETMASK
+import io.github.theodorelx.tunweave.data.MAP_DNS_NETWORK
 import io.github.theodorelx.tunweave.data.ProxyConfig
 import io.github.theodorelx.tunweave.util.AppLogger
 import java.io.File
@@ -58,6 +62,12 @@ class Tun2socksManager : ITun2socks {
                     appendLine("  username: ${yamlQuote(config.username)}")
                     appendLine("  password: ${yamlQuote(config.password)}")
                 }
+                appendLine("mapdns:")
+                appendLine("  address: $MAP_DNS_ADDRESS")
+                appendLine("  port: 53")
+                appendLine("  network: $MAP_DNS_NETWORK")
+                appendLine("  netmask: $MAP_DNS_NETMASK")
+                appendLine("  cache-size: $MAP_DNS_CACHE_SIZE")
                 appendLine("misc:")
                 // HEV's client debug level prints the configured credentials.
                 // Info retains connection and handshake details without that line.

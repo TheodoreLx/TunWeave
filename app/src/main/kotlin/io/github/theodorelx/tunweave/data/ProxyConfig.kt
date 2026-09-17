@@ -6,8 +6,6 @@ data class ProxyConfig(
     val proxyType: ProxyType = ProxyType.SOCKS5,
     val username: String = "",
     val password: String = "",
-    val dnsServer: String = "223.5.5.5",
-    val dnsServerAlt: String = "114.114.114.114",
     val ipv6Mode: Ipv6Mode = Ipv6Mode.PROXY,
     val bypassLan: Boolean = true,
     val bypassAddresses: String = DEFAULT_BYPASS_ADDRESSES,
@@ -19,6 +17,15 @@ data class ProxyConfig(
     val perAppMode: PerAppMode = PerAppMode.DISABLED,
     val selectedApps: Set<String> = emptySet(),
 )
+
+/**
+ * Documentation-only benchmark range reserved for HEV MapDNS fake addresses.
+ * It must be routed into the VPN so the native engine can restore the domain name.
+ */
+const val MAP_DNS_ADDRESS = "198.18.0.2"
+const val MAP_DNS_NETWORK = "198.18.0.0"
+const val MAP_DNS_NETMASK = "255.254.0.0"
+const val MAP_DNS_CACHE_SIZE = 10_000
 
 const val LEGACY_BYPASS_ADDRESSES =
     "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8, 169.254.0.0/16"

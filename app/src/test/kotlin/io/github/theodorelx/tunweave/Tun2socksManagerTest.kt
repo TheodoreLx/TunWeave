@@ -73,4 +73,14 @@ class Tun2socksManagerTest {
         assertTrue(yaml.contains("  log-level: info"))
         assertFalse(yaml.contains("log-level: debug"))
     }
+
+    @Test
+    fun hevYamlAlwaysEnablesMapDnsRemoteResolution() {
+        val yaml = Tun2socksManager.buildYamlConfig(ProxyConfig())
+
+        assertTrue(yaml.contains("mapdns:"))
+        assertTrue(yaml.contains("  address: 198.18.0.2"))
+        assertTrue(yaml.contains("  network: 198.18.0.0"))
+        assertTrue(yaml.contains("  netmask: 255.254.0.0"))
+    }
 }
