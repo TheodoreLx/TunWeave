@@ -10,6 +10,8 @@ import io.github.theodorelx.tunweave.data.Ipv6Mode
 import io.github.theodorelx.tunweave.data.PerAppMode
 import io.github.theodorelx.tunweave.data.ProxyConfig
 import io.github.theodorelx.tunweave.service.ProxyVpnService
+import io.github.theodorelx.tunweave.util.AppLogger
+import io.github.theodorelx.tunweave.util.LogLevel
 import io.github.theodorelx.tunweave.util.LatencyTester
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -115,6 +117,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateAutoReconnect(enabled: Boolean) {
         _proxyConfig.value = _proxyConfig.value.copy(autoReconnect = enabled)
+        debounceSave()
+    }
+
+    fun updateLoggingEnabled(enabled: Boolean) {
+        _proxyConfig.value = _proxyConfig.value.copy(loggingEnabled = enabled)
+        AppLogger.configure(enabled, _proxyConfig.value.logLevel)
+        debounceSave()
+    }
+
+    fun updateLogLevel(level: LogLevel) {
+        _proxyConfig.value = _proxyConfig.value.copy(logLevel = level)
+        AppLogger.configure(_proxyConfig.value.loggingEnabled, level)
         debounceSave()
     }
 

@@ -8,6 +8,7 @@ import io.github.theodorelx.tunweave.data.ProxyConfig
 import io.github.theodorelx.tunweave.data.ProxyType
 import io.github.theodorelx.tunweave.data.exportAppSelection
 import io.github.theodorelx.tunweave.data.importAppSelection
+import io.github.theodorelx.tunweave.util.LogLevel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,6 +27,8 @@ class ProxyConfigTest {
         assertEquals("https://www.gstatic.com/generate_204", config.latencyTestUrl)
         assertTrue(config.bypassLan)
         assertEquals(1500, config.mtu)
+        assertTrue(!config.loggingEnabled)
+        assertEquals(LogLevel.INFO, config.logLevel)
         assertEquals(PerAppMode.BLACKLIST, config.perAppMode)
         assertTrue(config.selectedApps.isEmpty())
     }
