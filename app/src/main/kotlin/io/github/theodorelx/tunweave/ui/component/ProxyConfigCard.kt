@@ -96,7 +96,9 @@ fun ProxyConfigCard(
                 placeholder = { Text("例如: 192.168.1.100") },
                 singleLine = true,
                 enabled = !isConnected,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .tvFocusHighlight(focusedScale = 1.01f),
             )
 
             // Port
@@ -108,11 +110,16 @@ fun ProxyConfigCard(
                 singleLine = true,
                 enabled = !isConnected,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .tvFocusHighlight(focusedScale = 1.01f),
             )
 
             // Auth toggle
-            TextButton(onClick = onToggleAuth) {
+            TextButton(
+                onClick = onToggleAuth,
+                modifier = Modifier.tvFocusHighlight(focusedScale = 1.04f),
+            ) {
                 Text(
                     text = if (showAuth) "认证信息 ▲" else "认证信息 ▼",
                     style = MaterialTheme.typography.labelLarge,
@@ -132,7 +139,9 @@ fun ProxyConfigCard(
                         label = { Text("用户名") },
                         singleLine = true,
                         enabled = !isConnected,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .tvFocusHighlight(focusedScale = 1.01f),
                     )
                     OutlinedTextField(
                         value = config.password,
@@ -143,7 +152,10 @@ fun ProxyConfigCard(
                         visualTransformation = if (passwordVisible) VisualTransformation.None
                             else PasswordVisualTransformation(),
                         trailingIcon = {
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            IconButton(
+                                onClick = { passwordVisible = !passwordVisible },
+                                modifier = Modifier.tvFocusHighlight(focusedScale = 1.1f),
+                            ) {
                                 Icon(
                                     imageVector = if (passwordVisible) Icons.Default.Visibility
                                         else Icons.Default.VisibilityOff,
@@ -151,7 +163,9 @@ fun ProxyConfigCard(
                                 )
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .tvFocusHighlight(focusedScale = 1.01f),
                     )
                 }
             }

@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,7 +18,9 @@ import androidx.navigation.compose.rememberNavController
 import io.github.theodorelx.tunweave.ui.screen.AppSelectScreen
 import io.github.theodorelx.tunweave.ui.screen.HomeScreen
 import io.github.theodorelx.tunweave.ui.screen.SettingsScreen
+import io.github.theodorelx.tunweave.ui.tv.TvMainScreen
 import io.github.theodorelx.tunweave.ui.theme.TunWeaveTheme
+import io.github.theodorelx.tunweave.util.DeviceUtils
 import io.github.theodorelx.tunweave.viewmodel.MainViewModel
 
 class MainActivity : ComponentActivity() {
@@ -63,26 +66,35 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                NavHost(navController = navController, startDestination = "home") {
-                    composable("home") {
-                        HomeScreen(
-                            viewModel = mainViewModel,
-                            onNavigateToSettings = { navController.navigate("settings") },
-                            onRequestVpnPermission = { vpnPermissionLauncher.launch(it) },
-                        )
-                    }
-                    composable("settings") {
-                        SettingsScreen(
-                            viewModel = mainViewModel,
-                            onBack = { navController.popBackStack() },
-                            onNavigateToAppSelect = { navController.navigate("app_select") },
-                        )
-                    }
-                    composable("app_select") {
-                        AppSelectScreen(
-                            viewModel = mainViewModel,
-                            onBack = { navController.popBackStack() },
-                        )
+                val isTv = remember { DeviceUtils.isTv(this@MainActivity) }
+
+                if (isTv) {
+                    TvMainScreen(
+                        viewModel = mainViewModel,
+                        onRequestVpnPermission = { vpnPermissionLauncher.launch(it) },
+                    )
+                } else {
+                    NavHost(navController = navController, startDestination = "home") {
+                        composable("home") {
+                            HomeScreen(
+                                viewModel = mainViewModel,
+                                onNavigateToSettings = { navController.navigate("settings") },
+                                onRequestVpnPermission = { vpnPermissionLauncher.launch(it) },
+                            )
+                        }
+                        composable("settings") {
+                            SettingsScreen(
+                                viewModel = mainViewModel,
+                                onBack = { navController.popBackStack() },
+                                onNavigateToAppSelect = { navController.navigate("app_select") },
+                            )
+                        }
+                        composable("app_select") {
+                            AppSelectScreen(
+                                viewModel = mainViewModel,
+                                onBack = { navController.popBackStack() },
+                            )
+                        }
                     }
                 }
             }

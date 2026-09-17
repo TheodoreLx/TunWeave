@@ -118,7 +118,12 @@ fun StatusCard(
                     onClick = onToggle,
                     modifier = Modifier
                         .size(88.dp)
-                        .scale(scale),
+                        .scale(scale)
+                        .tvFocusHighlight(
+                            shape = CircleShape,
+                            focusedBorderWidth = 4.dp,
+                            focusedScale = 1.15f,
+                        ),
                     shape = CircleShape,
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = buttonColor,
@@ -183,6 +188,11 @@ fun StatusCard(
                 Spacer(modifier = Modifier.height(8.dp))
                 AssistChip(
                     onClick = onTestLatency,
+                    modifier = Modifier.tvFocusHighlight(
+                        shape = AssistChipDefaults.shape,
+                        focusedBorderWidth = 2.dp,
+                        focusedScale = 1.08f,
+                    ),
                     label = {
                         Text(
                             text = when {

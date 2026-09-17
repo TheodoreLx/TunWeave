@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+
+    <!-- Background Gradient / Surface -->
+    <path
+        android:fillColor="#1C1B1F"
+        android:pathData="M0,0h320v180h-320z" />
+
+    <!-- Decorative Accent Shapes -->
+    <path
+        android:fillColor="#2B2930"
+        android:pathData="M0,0h320v70L240,180H0z" />
+
+    <path
+        android:fillColor="#6750A4"
+        android:pathData="M160,0L320,0L320,120z" />
+
+    <path
+        android:fillColor="#D0BCFF"
+        android:pathData="M240,0L320,0L320,60z" />
+
+    <!-- Rocket Icon Group (Centered Left) -->
+    <group
+        android:scaleX="0.9"
+        android:scaleY="0.9"
+        android:translateX="30"
+        android:translateY="40">
+        <!-- Rocket Body -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M61.39,26.4C54.22,27.69 47.05,32.16 42.46,38.58C39.91,42.15 38.11,46.26 37.27,50.55L30.49,52.8C28.99,53.31 28,54.72 28,56.31C28,58.44 29.74,60.18 31.87,60.18L37.09,60.18C37.51,63.15 38.68,66 40.51,68.46L32.77,76.2C31.6,77.37 31.6,79.26 32.77,80.43C33.94,81.6 35.83,81.6 37,80.43L44.74,72.69C47.2,74.52 50.05,75.69 53.02,76.11L53.02,81.3C53.02,83.43 54.76,85.17 56.89,85.17C58.48,85.17 59.89,84.18 60.4,82.68L62.65,75.9C66.94,75.06 71.05,73.26 74.62,70.71C81.04,66.12 85.51,58.95 86.8,51.78C87.19,49.62 86.71,47.4 85.48,45.69C83.77,44.46 81.55,43.98 79.39,44.37Z" />
+        <!-- Rocket Window Portal -->
+        <path
+            android:fillColor="#6750A4"
+            android:pathData="M58,52m-7.5,0a7.5,7.5 0 1,0 15,0a7.5,7.5 0 1,0 -15,0" />
+    </group>
+
+    <!-- TunWeave TV Brand Text Accent Line -->
+    <path
+        android:fillColor="#D0BCFF"
+        android:pathData="M140,115h130v4h-130z" />
+</vector>
